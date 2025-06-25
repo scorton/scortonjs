@@ -1,9 +1,15 @@
 {
   "name": "scortonjs",
   "version": "1.0.0",
-  "description": "Simple CLI demo",
+  "description": "Simple CLI demo for rapid prototyping cybersecurity awareness slides",
   "bin": {
     "scortonjs": "./cli.js"
   },
+  "keywords": [
+    "cli",
+    "cybersecurity",
+    "slides",
+    "prototype"
+  ],
   "type": "module"
 }

@@ -14,3 +14,7 @@ Available commands:
 - `version`  prints the package version
 
 Without a command, help is shown.
+
+## License
+
+This project is licensed under the MIT License.

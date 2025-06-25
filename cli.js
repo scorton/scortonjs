@@ -1,11 +1,14 @@
 #!/usr/bin/env node
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import pkg from './package.json' with { type: 'json' };
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-const [, , command] = process.argv;
+const commands = {
+  hello() {
+    console.log('Hello from scortonjs!');
+  },
+  version() {
+    console.log(pkg.version);
+  },
+};
 
 function showHelp() {
   console.log('Usage: scortonjs <command>');
@@ -14,17 +17,5 @@ function showHelp() {
   console.log('  version  Print version');
 }
 
-switch (command) {
-  case 'hello':
-    console.log('Hello from scortonjs!');
-    break;
-  case 'version':
-    const pkg = JSON.parse(
-      readFileSync(join(__dirname, 'package.json'), 'utf8')
-    );
-    console.log(pkg.version);
-    break;
-  default:
-    showHelp();
-    break;
-}
+const [, , command] = process.argv;
+(commands[command] ?? showHelp)();

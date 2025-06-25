@@ -14,3 +14,11 @@ Available commands:
 - `version`  prints the package version
 
 Without a command, help is shown.
+
+## Running Tests
+
+Install dev dependencies and run:
+
+```bash
+npm test
+```

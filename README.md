@@ -333,10 +333,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Documentation**: [docs.scortonjs.com](https://docs.scortonjs.com)
+- **Documentation**: [docs.scortonjs.com](https://docs.scorton.com)
 - **Issues**: [GitHub Issues](https://github.com/scortonjs/scortonjs/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/scortonjs/scortonjs/discussions)
-- **Email**: team@scortonjs.com
+- **Email**: team@scorton.tech
 
 ---
 

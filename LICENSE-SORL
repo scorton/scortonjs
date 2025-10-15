@@ -1,0 +1,35 @@
+Scorton Open Research License (SORL-MIT Variant)
+
+Copyright (c) 2024 ScortonJS Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the “Software”), to use, copy, modify, merge, publish,
+and distribute the Software for scientific research, academic study, or open-source contribution
+purposes only, subject to the following conditions:
+
+1. Non-Commercial Use  
+   Commercial use of the Software, in whole or in part, is prohibited without prior written
+   permission from the ScortonJS Team. “Commercial use” includes but is not limited to use
+   in any product or service offered for sale, license, or any other form of monetary
+   compensation or commercial advantage.
+
+2. Attribution  
+   The above copyright notice and this permission notice shall be included in all copies
+   or substantial portions of the Software.
+
+3. Derivative Works  
+   Modifications and derivative works must clearly indicate changes made and must remain
+   under this same non-commercial license unless otherwise approved in writing by the ScortonJS Team.
+
+4. Brand and Name Usage  
+   The names “Scorton”, “ScortonJS”, and any associated logos, trademarks, or brand elements
+   may not be used, in whole or in part, to endorse, promote, or distribute derivative works,
+   products, or services without explicit written permission from the ScortonJS Team.
+   Use of the ScortonJS name or brand in advertising, domain names, or software names is
+   strictly prohibited unless authorized in writing.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE,
+ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

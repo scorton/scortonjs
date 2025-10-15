@@ -1,0 +1,81 @@
+#!/usr/bin/env node
+/**
+ * ScortonJS - Node.js wrapper for Python implementation
+ * This script provides cross-platform compatibility and npm integration
+ */
+
+const { spawn } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+
+// Get the directory where this script is located
+const scriptDir = __dirname;
+const pythonScript = path.join(scriptDir, '..', 'scorton.py');
+
+// Check if Python script exists
+if (!fs.existsSync(pythonScript)) {
+  console.error('Error: scorton.py not found. Please ensure the package is properly installed.');
+  process.exit(1);
+}
+
+// Function to find Python executable
+function findPython() {
+  const pythonCommands = ['python3', 'python'];
+  
+  for (const cmd of pythonCommands) {
+    try {
+      const result = require('child_process').execSync(`${cmd} --version`, { 
+        encoding: 'utf8',
+        stdio: 'pipe'
+      });
+      if (result.includes('Python')) {
+        return cmd;
+      }
+    } catch (e) {
+      // Continue to next command
+    }
+  }
+  
+  return null;
+}
+
+// Main execution
+function main() {
+  const pythonCmd = findPython();
+  
+  if (!pythonCmd) {
+    console.error('Error: Python 3 not found. Please install Python 3.7+ and ensure it\'s in your PATH.');
+    console.error('Visit: https://www.python.org/downloads/');
+    process.exit(1);
+  }
+  
+  // Spawn Python process with all arguments
+  const args = process.argv.slice(2);
+  const pythonProcess = spawn(pythonCmd, [pythonScript, ...args], {
+    stdio: 'inherit',
+    cwd: path.dirname(pythonScript)
+  });
+  
+  pythonProcess.on('error', (error) => {
+    console.error(`Error running Python: ${error.message}`);
+    process.exit(1);
+  });
+  
+  pythonProcess.on('close', (code) => {
+    process.exit(code);
+  });
+}
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error.message);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// Run main function
+main();

@@ -1,0 +1,30 @@
+[package]
+name = "scorton-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.4"
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+reqwest = { workspace = true }
+rustls = { workspace = true }
+rustls-pemfile = { workspace = true }
+rustls-webpki = { workspace = true }
+url = { workspace = true }
+regex = { workspace = true }
+jsonwebtoken = "9.2"
+argon2 = "0.5"
+actix-cors = "0.6"
+actix-web-httpauth = "0.7"
+actix-limitation = "0.2"
+scorton-security = { path = "../scorton-security" }
+scorton-compliance = { path = "../scorton-compliance" }
+
+[dev-dependencies]
+tokio-test = "0.4"

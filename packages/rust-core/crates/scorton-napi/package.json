@@ -1,0 +1,43 @@
+{
+  "name": "@scorton/rust-core",
+  "version": "0.1.0",
+  "description": "Scorton Rust core modules with Node.js bindings",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "napi build --release",
+    "build:debug": "napi build",
+    "prepublishOnly": "napi prepublish -t npm"
+  },
+  "napi": {
+    "name": "scorton-napi",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "x86_64-unknown-linux-gnu",
+        "x86_64-apple-darwin",
+        "aarch64-apple-darwin",
+        "x86_64-pc-windows-msvc"
+      ]
+    }
+  },
+  "keywords": [
+    "security",
+    "scanning",
+    "compliance",
+    "dora",
+    "nis2",
+    "rust",
+    "napi"
+  ],
+  "author": "ScortonJS Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 14"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node"
+  ]
+}

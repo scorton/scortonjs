@@ -1,0 +1,26 @@
+[package]
+name = "scorton-napi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = { version = "2.2", features = ["async", "tokio_rt"] }
+napi-derive = "2.2"
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+scorton-security = { path = "../scorton-security" }
+scorton-compliance = { path = "../scorton-compliance" }
+
+[build-dependencies]
+napi-build = "2.2"
+
+[dev-dependencies]
+tokio-test = "0.4"

@@ -1,0 +1,24 @@
+[package]
+name = "scorton-security"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+reqwest = { workspace = true }
+rustls = { workspace = true }
+rustls-pemfile = { workspace = true }
+rustls-webpki = { workspace = true }
+url = { workspace = true }
+regex = { workspace = true }
+futures = "0.3"
+env_logger = "0.10"
+
+[dev-dependencies]
+tokio-test = "0.4"

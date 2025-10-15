@@ -1,0 +1,59 @@
+{
+  "name": "scortonjs",
+  "version": "1.0.0",
+  "description": "Minimalist CLI for ScortonJS security auditing",
+  "main": "index.js",
+  "bin": {
+    "scorton": "./bin/scorton"
+  },
+  "scripts": {
+    "test": "python3 -m py_compile scorton.py main.py",
+    "install-deps": "pip3 install -r requirements.txt --user || echo 'Python dependencies installation failed. Please install manually: pip3 install -r requirements.txt'",
+    "postinstall": "npm run install-deps",
+    "build:rust": "cd packages/rust-core && cargo build --release",
+    "build:napi": "cd packages/rust-core/crates/scorton-napi && npm run build",
+    "build:ts": "cd packages/cli && npm run build",
+    "build": "npm run build:rust && npm run build:napi && npm run build:ts",
+    "dev:rust": "cd packages/rust-core && cargo run --bin scorton-server",
+    "dev:cli": "cd packages/cli && npm run dev"
+  },
+  "keywords": [
+    "security",
+    "audit",
+    "cli",
+    "cybersecurity",
+    "scorton",
+    "rust",
+    "compliance",
+    "dora",
+    "nis2"
+  ],
+  "author": "ScortonJS Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scortonjs/scortonjs.git"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "python": ">=3.7.0",
+    "rust": ">=1.70.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "files": [
+    "bin/",
+    "scorton.py",
+    "main.py",
+    "requirements.txt",
+    "README.md",
+    "packages/"
+  ],
+  "preferGlobal": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

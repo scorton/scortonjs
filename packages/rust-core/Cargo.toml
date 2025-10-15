@@ -1,0 +1,23 @@
+[workspace]
+members = [
+    "crates/scorton-server",
+    "crates/scorton-compliance", 
+    "crates/scorton-security",
+    "crates/scorton-napi"
+]
+resolver = "2"
+
+[workspace.dependencies]
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+reqwest = { version = "0.11", features = ["json"] }
+rustls = "0.21"
+rustls-pemfile = "1.0"
+rustls-webpki = "0.101"
+url = "2.4"
+regex = "1.10"

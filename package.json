@@ -54,6 +54,7 @@
   ],
   "preferGlobal": true,
   "workspaces": [
-    "packages/*"
+    "packages/cli",
+    "packages/rust-core/crates/scorton-napi"
   ]
 }

@@ -17,13 +17,7 @@
   "dependencies": {
     "commander": "^12.1.0",
     "zod": "^3.23.8",
-    "@scorton/rust-core": "workspace:*"
-  },
-  "optionalDependencies": {
-    "@scorton/rust-core-darwin-arm64": "*",
-    "@scorton/rust-core-darwin-x64": "*",
-    "@scorton/rust-core-linux-x64-gnu": "*",
-    "@scorton/rust-core-win32-x64-msvc": "*"
+    "@scorton/rust-core": "0.1.0"
   },
   "devDependencies": {
     "ts-node": "^10.9.1",
@@ -31,4 +25,3 @@
     "@types/node": "^22.7.4"
   }
 }
-

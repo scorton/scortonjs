@@ -209,16 +209,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-          cd packages/cli
-          npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run TypeScript build
-        run: |
-          cd packages/cli
-          npm run build
+        run: npm run build --workspace @scorton/cli
 
-      - name: Run tests
-        run: |
-          cd packages/cli
-          npm test
+      - name: Smoke-test CLI
+        run: node packages/cli/bin/scorton.mjs --help

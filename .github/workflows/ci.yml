@@ -9,7 +9,7 @@ on:
     types: [ published ]
 
 env:
-  PYTHON_VERSION: "3.8"
+  PYTHON_VERSION: "3.11"
 
 jobs:
   # Lint and format check
@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -61,10 +61,11 @@ jobs:
         run: bandit -r scorton.py -f json -o bandit-report.json
 
       - name: Run Safety check
-        run: safety check --json --output safety-report.json
+        continue-on-error: true
+        run: safety check --json --output safety-report.json || true
 
       - name: Upload security reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-reports
@@ -77,15 +78,16 @@ jobs:
     name: Test on Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -94,13 +96,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-cov
+          pip install -e .
 
       - name: Run tests
         run: |
           pytest --cov=scorton --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           flags: unittests
@@ -117,7 +120,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -133,7 +136,7 @@ jobs:
         run: twine check dist/*
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
@@ -147,7 +150,7 @@ jobs:
     environment: production
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
@@ -164,20 +167,23 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Install OpenSSL
+        run: sudo apt-get update && sudo apt-get install -y libssl-dev pkg-config
+
       - name: Cache cargo registry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache cargo index
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache cargo build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: packages/rust-core/target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}

@@ -1,6 +1,4 @@
 use napi_derive::napi;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[napi]
 pub struct ScanResult {
@@ -49,7 +47,14 @@ pub struct ServerConfig {
 #[napi]
 impl ScanResult {
     #[napi(constructor)]
-    pub fn new(target: String, tool: String, status: String, data: String, duration_ms: f64, timestamp: String) -> Self {
+    pub fn new(
+        target: String,
+        tool: String,
+        status: String,
+        data: String,
+        duration_ms: f64,
+        timestamp: String,
+    ) -> Self {
         Self {
             target,
             tool,
@@ -131,15 +136,18 @@ impl ServerConfig {
 #[napi]
 pub async fn run_security_scan(tool: String, target: String) -> napi::Result<ScanResult> {
     let start_time = std::time::Instant::now();
-    
+
     let scanner = scorton_security::SecurityScanner::default();
-    
+
     let result = match tool.as_str() {
         "port_scan" => {
-            let ports = vec![21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 993, 995, 1723, 3389];
+            let ports = vec![
+                21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 993, 995, 1723, 3389,
+            ];
             match scanner.port_scan(&target, &ports).await {
                 Ok(results) => {
-                    let data = serde_json::to_string(&results).map_err(|e| napi::Error::from_reason(e.to_string()))?;
+                    let data = serde_json::to_string(&results)
+                        .map_err(|e| napi::Error::from_reason(e.to_string()))?;
                     ScanResult::new(
                         target,
                         tool,
@@ -159,75 +167,72 @@ pub async fn run_security_scan(tool: String, target: String) -> napi::Result<Sca
                 ),
             }
         }
-        "ssl_scan" => {
-            match scanner.ssl_scan(&target, 443).await {
-                Ok(cert) => {
-                    let data = serde_json::to_string(&cert).map_err(|e| napi::Error::from_reason(e.to_string()))?;
-                    ScanResult::new(
-                        target,
-                        tool,
-                        "success".to_string(),
-                        data,
-                        start_time.elapsed().as_millis() as f64,
-                        chrono::Utc::now().to_rfc3339(),
-                    )
-                }
-                Err(e) => ScanResult::new(
+        "ssl_scan" => match scanner.ssl_scan(&target, 443).await {
+            Ok(cert) => {
+                let data = serde_json::to_string(&cert)
+                    .map_err(|e| napi::Error::from_reason(e.to_string()))?;
+                ScanResult::new(
                     target,
                     tool,
-                    "error".to_string(),
-                    format!("{{\"error\": \"{}\"}}", e),
+                    "success".to_string(),
+                    data,
                     start_time.elapsed().as_millis() as f64,
                     chrono::Utc::now().to_rfc3339(),
-                ),
+                )
             }
-        }
-        "dns_enum" => {
-            match scanner.dns_enum(&target).await {
-                Ok(records) => {
-                    let data = serde_json::to_string(&records).map_err(|e| napi::Error::from_reason(e.to_string()))?;
-                    ScanResult::new(
-                        target,
-                        tool,
-                        "success".to_string(),
-                        data,
-                        start_time.elapsed().as_millis() as f64,
-                        chrono::Utc::now().to_rfc3339(),
-                    )
-                }
-                Err(e) => ScanResult::new(
+            Err(e) => ScanResult::new(
+                target,
+                tool,
+                "error".to_string(),
+                format!("{{\"error\": \"{}\"}}", e),
+                start_time.elapsed().as_millis() as f64,
+                chrono::Utc::now().to_rfc3339(),
+            ),
+        },
+        "dns_enum" => match scanner.dns_enum(&target).await {
+            Ok(records) => {
+                let data = serde_json::to_string(&records)
+                    .map_err(|e| napi::Error::from_reason(e.to_string()))?;
+                ScanResult::new(
                     target,
                     tool,
-                    "error".to_string(),
-                    format!("{{\"error\": \"{}\"}}", e),
+                    "success".to_string(),
+                    data,
                     start_time.elapsed().as_millis() as f64,
                     chrono::Utc::now().to_rfc3339(),
-                ),
+                )
             }
-        }
-        "headers_check" => {
-            match scanner.check_headers(&target).await {
-                Ok(headers) => {
-                    let data = serde_json::to_string(&headers).map_err(|e| napi::Error::from_reason(e.to_string()))?;
-                    ScanResult::new(
-                        target,
-                        tool,
-                        "success".to_string(),
-                        data,
-                        start_time.elapsed().as_millis() as f64,
-                        chrono::Utc::now().to_rfc3339(),
-                    )
-                }
-                Err(e) => ScanResult::new(
+            Err(e) => ScanResult::new(
+                target,
+                tool,
+                "error".to_string(),
+                format!("{{\"error\": \"{}\"}}", e),
+                start_time.elapsed().as_millis() as f64,
+                chrono::Utc::now().to_rfc3339(),
+            ),
+        },
+        "headers_check" => match scanner.check_headers(&target).await {
+            Ok(headers) => {
+                let data = serde_json::to_string(&headers)
+                    .map_err(|e| napi::Error::from_reason(e.to_string()))?;
+                ScanResult::new(
                     target,
                     tool,
-                    "error".to_string(),
-                    format!("{{\"error\": \"{}\"}}", e),
+                    "success".to_string(),
+                    data,
                     start_time.elapsed().as_millis() as f64,
                     chrono::Utc::now().to_rfc3339(),
-                ),
+                )
             }
-        }
+            Err(e) => ScanResult::new(
+                target,
+                tool,
+                "error".to_string(),
+                format!("{{\"error\": \"{}\"}}", e),
+                start_time.elapsed().as_millis() as f64,
+                chrono::Utc::now().to_rfc3339(),
+            ),
+        },
         _ => ScanResult::new(
             target,
             tool.clone(),
@@ -237,20 +242,25 @@ pub async fn run_security_scan(tool: String, target: String) -> napi::Result<Sca
             chrono::Utc::now().to_rfc3339(),
         ),
     };
-    
+
     Ok(result)
 }
 
 #[napi]
-pub async fn calculate_cyber_score(target: String) -> napi::Result<CyberScore> {
+pub async fn calculate_cyber_score(_target: String) -> napi::Result<CyberScore> {
     // Placeholder implementation for cyber score calculation
     // In a real implementation, this would analyze various security factors
     let technical = 0.75;
     let behavioral = 0.65;
     let organizational = 0.80;
     let overall = (technical + behavioral + organizational) / 3.0;
-    
-    Ok(CyberScore::new(technical, behavioral, organizational, overall))
+
+    Ok(CyberScore::new(
+        technical,
+        behavioral,
+        organizational,
+        overall,
+    ))
 }
 
 #[napi]
@@ -285,14 +295,15 @@ pub async fn assess_nis2_compliance(target: String) -> napi::Result<NIS2Result> 
 #[napi]
 pub async fn run_comprehensive_scan(target: String) -> napi::Result<ScanResult> {
     let start_time = std::time::Instant::now();
-    
+
     let orchestrator = scorton_security::scanner::ScannerOrchestrator::new(
-        scorton_security::scanner::ScannerConfig::default()
+        scorton_security::scanner::ScannerConfig::default(),
     );
-    
+
     match orchestrator.run_comprehensive_scan(&target).await {
         Ok(results) => {
-            let data = serde_json::to_string(&results).map_err(|e| napi::Error::from_reason(e.to_string()))?;
+            let data = serde_json::to_string(&results)
+                .map_err(|e| napi::Error::from_reason(e.to_string()))?;
             Ok(ScanResult::new(
                 target,
                 "comprehensive".to_string(),

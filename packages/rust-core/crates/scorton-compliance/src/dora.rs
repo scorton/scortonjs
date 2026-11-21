@@ -1,6 +1,6 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use anyhow::Result;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DORAAssessment {
@@ -51,7 +51,7 @@ pub async fn assess_dora_compliance(target: &str) -> Result<DORAAssessment> {
     let incident_response_time = measure_incident_response_time(target).await?;
     let third_party_risks = assess_third_party_risks(target).await?;
     let resilience_score = calculate_resilience_score(target).await?;
-    
+
     let compliance_status = determine_dora_compliance_status(
         &ict_risk_score,
         &incident_response_time,
@@ -90,14 +90,12 @@ async fn measure_incident_response_time(_target: &str) -> Result<Duration> {
 async fn assess_third_party_risks(_target: &str) -> Result<Vec<ThirdPartyRisk>> {
     // Placeholder implementation
     // In real implementation, this would assess actual third-party vendors
-    Ok(vec![
-        ThirdPartyRisk {
-            vendor_name: "Cloud Provider".to_string(),
-            risk_level: RiskLevel::Medium,
-            assessment_date: chrono::Utc::now(),
-            criticality: Criticality::High,
-        },
-    ])
+    Ok(vec![ThirdPartyRisk {
+        vendor_name: "Cloud Provider".to_string(),
+        risk_level: RiskLevel::Medium,
+        assessment_date: chrono::Utc::now(),
+        criticality: Criticality::High,
+    }])
 }
 
 async fn calculate_resilience_score(_target: &str) -> Result<f64> {
@@ -107,19 +105,19 @@ async fn calculate_resilience_score(_target: &str) -> Result<f64> {
 }
 
 fn determine_dora_compliance_status(
-    ict_risk_score: &f64,
+    _ict_risk_score: &f64,
     incident_response_time: &Duration,
     third_party_risks: &[ThirdPartyRisk],
     resilience_score: &f64,
 ) -> ComplianceStatus {
     let max_response_time = Duration::from_secs(4 * 3600); // 4 hours
     let min_resilience_score = 0.7;
-    
+
     let response_time_ok = *incident_response_time <= max_response_time;
     let resilience_ok = *resilience_score >= min_resilience_score;
-    let third_party_ok = !third_party_risks.iter().any(|risk| {
-        matches!(risk.risk_level, RiskLevel::High | RiskLevel::Critical)
-    });
+    let third_party_ok = !third_party_risks
+        .iter()
+        .any(|risk| matches!(risk.risk_level, RiskLevel::High | RiskLevel::Critical));
 
     if response_time_ok && resilience_ok && third_party_ok {
         ComplianceStatus::Compliant
@@ -144,7 +142,9 @@ fn generate_dora_recommendations(status: &ComplianceStatus) -> Vec<String> {
             "Conduct third-party risk assessments".to_string(),
             "Develop business continuity plans".to_string(),
         ],
-        ComplianceStatus::Unknown => vec!["Conduct comprehensive compliance assessment".to_string()],
+        ComplianceStatus::Unknown => {
+            vec!["Conduct comprehensive compliance assessment".to_string()]
+        }
     }
 }
 

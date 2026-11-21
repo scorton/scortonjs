@@ -1,6 +1,6 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use anyhow::Result;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NIS2Assessment {
@@ -59,7 +59,7 @@ pub async fn assess_nis2_compliance(target: &str) -> Result<NIS2Assessment> {
     let incident_handling = assess_incident_handling(target).await?;
     let business_continuity = assess_business_continuity(target).await?;
     let supply_chain_security = assess_supply_chain_security(target).await?;
-    
+
     let compliance_status = determine_nis2_compliance_status(
         &risk_level,
         &incident_handling,
@@ -90,7 +90,7 @@ async fn assess_incident_handling(_target: &str) -> Result<IncidentMetrics> {
     // In real implementation, this would assess actual incident handling capabilities
     Ok(IncidentMetrics {
         detection_time: Duration::from_secs(15 * 60), // 15 minutes
-        response_time: Duration::from_secs(1 * 3600), // 1 hour
+        response_time: Duration::from_secs(3600),     // 1 hour
         resolution_time: Duration::from_secs(4 * 3600), // 4 hours
         reporting_time: Duration::from_secs(2 * 3600), // 2 hours
         incidents_last_year: 3,
@@ -104,7 +104,7 @@ async fn assess_business_continuity(_target: &str) -> Result<BCPStatus> {
         plan_exists: true,
         last_tested: Some(chrono::Utc::now() - chrono::Duration::days(30)),
         recovery_time_objective: Duration::from_secs(4 * 3600), // 4 hours
-        recovery_point_objective: Duration::from_secs(1 * 3600), // 1 hour
+        recovery_point_objective: Duration::from_secs(3600),    // 1 hour
         backup_frequency: "Daily".to_string(),
     })
 }
@@ -128,7 +128,7 @@ fn determine_nis2_compliance_status(
 ) -> ComplianceStatus {
     let max_reporting_time = Duration::from_secs(24 * 3600); // 24 hours
     let min_supply_chain_score = 0.7;
-    
+
     let incident_ok = incident_handling.reporting_time <= max_reporting_time;
     let bcp_ok = business_continuity.plan_exists && business_continuity.last_tested.is_some();
     let supply_chain_ok = supply_chain_security.overall_score >= min_supply_chain_score;
@@ -156,7 +156,9 @@ fn generate_nis2_recommendations(status: &ComplianceStatus) -> Vec<String> {
             "Develop business continuity plans".to_string(),
             "Conduct supply chain security assessments".to_string(),
         ],
-        ComplianceStatus::Unknown => vec!["Conduct comprehensive compliance assessment".to_string()],
+        ComplianceStatus::Unknown => {
+            vec!["Conduct comprehensive compliance assessment".to_string()]
+        }
     }
 }
 

@@ -1,6 +1,6 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use anyhow::Result;
 
 pub mod dora;
 pub mod nis2;
@@ -142,7 +142,7 @@ impl ComplianceEngine {
             let dora_result = dora::assess_dora_compliance(target).await?;
             overall_score += dora_result.ict_risk_score;
             score_count += 1;
-            
+
             findings.extend(self.convert_dora_findings(&dora_result));
             recommendations.extend(self.convert_dora_recommendations(&dora_result));
         }
@@ -152,12 +152,16 @@ impl ComplianceEngine {
             let nis2_result = nis2::assess_nis2_compliance(target).await?;
             overall_score += nis2_result.supply_chain_security.overall_score;
             score_count += 1;
-            
+
             findings.extend(self.convert_nis2_findings(&nis2_result));
             recommendations.extend(self.convert_nis2_recommendations(&nis2_result));
         }
 
-        let final_score = if score_count > 0 { overall_score / score_count as f64 } else { 0.0 };
+        let final_score = if score_count > 0 {
+            overall_score / score_count as f64
+        } else {
+            0.0
+        };
         let compliance_status = self.determine_overall_status(final_score);
 
         Ok(ComplianceReport {
@@ -179,12 +183,15 @@ impl ComplianceEngine {
 
     fn convert_dora_findings(&self, dora_result: &dora::DORAAssessment) -> Vec<Finding> {
         let mut findings = Vec::new();
-        
+
         if dora_result.ict_risk_score < 0.7 {
             findings.push(Finding {
                 id: uuid::Uuid::new_v4().to_string(),
                 title: "Low ICT Risk Score".to_string(),
-                description: format!("ICT risk score of {} is below recommended threshold", dora_result.ict_risk_score),
+                description: format!(
+                    "ICT risk score of {} is below recommended threshold",
+                    dora_result.ict_risk_score
+                ),
                 severity: Severity::High,
                 category: Category::Technical,
                 evidence: vec![format!("ICT Risk Score: {}", dora_result.ict_risk_score)],
@@ -195,10 +202,16 @@ impl ComplianceEngine {
             findings.push(Finding {
                 id: uuid::Uuid::new_v4().to_string(),
                 title: "Low Resilience Score".to_string(),
-                description: format!("Resilience score of {} indicates operational weaknesses", dora_result.resilience_score),
+                description: format!(
+                    "Resilience score of {} indicates operational weaknesses",
+                    dora_result.resilience_score
+                ),
                 severity: Severity::Medium,
                 category: Category::Organizational,
-                evidence: vec![format!("Resilience Score: {}", dora_result.resilience_score)],
+                evidence: vec![format!(
+                    "Resilience Score: {}",
+                    dora_result.resilience_score
+                )],
             });
         }
 
@@ -207,7 +220,7 @@ impl ComplianceEngine {
 
     fn convert_nis2_findings(&self, nis2_result: &nis2::NIS2Assessment) -> Vec<Finding> {
         let mut findings = Vec::new();
-        
+
         if nis2_result.incident_handling.reporting_time > Duration::from_secs(24 * 3600) {
             findings.push(Finding {
                 id: uuid::Uuid::new_v4().to_string(),
@@ -215,7 +228,10 @@ impl ComplianceEngine {
                 description: "Incident reporting time exceeds NIS2 requirements".to_string(),
                 severity: Severity::High,
                 category: Category::Process,
-                evidence: vec![format!("Reporting Time: {:?}", nis2_result.incident_handling.reporting_time)],
+                evidence: vec![format!(
+                    "Reporting Time: {:?}",
+                    nis2_result.incident_handling.reporting_time
+                )],
             });
         }
 
@@ -233,26 +249,40 @@ impl ComplianceEngine {
         findings
     }
 
-    fn convert_dora_recommendations(&self, dora_result: &dora::DORAAssessment) -> Vec<Recommendation> {
-        dora_result.recommendations.iter().map(|rec| Recommendation {
-            id: uuid::Uuid::new_v4().to_string(),
-            title: rec.clone(),
-            description: format!("DORA compliance recommendation: {}", rec),
-            priority: Priority::High,
-            effort: Effort::Medium,
-            impact: Impact::High,
-        }).collect()
+    fn convert_dora_recommendations(
+        &self,
+        dora_result: &dora::DORAAssessment,
+    ) -> Vec<Recommendation> {
+        dora_result
+            .recommendations
+            .iter()
+            .map(|rec| Recommendation {
+                id: uuid::Uuid::new_v4().to_string(),
+                title: rec.clone(),
+                description: format!("DORA compliance recommendation: {}", rec),
+                priority: Priority::High,
+                effort: Effort::Medium,
+                impact: Impact::High,
+            })
+            .collect()
     }
 
-    fn convert_nis2_recommendations(&self, nis2_result: &nis2::NIS2Assessment) -> Vec<Recommendation> {
-        nis2_result.recommendations.iter().map(|rec| Recommendation {
-            id: uuid::Uuid::new_v4().to_string(),
-            title: rec.clone(),
-            description: format!("NIS2 compliance recommendation: {}", rec),
-            priority: Priority::High,
-            effort: Effort::Medium,
-            impact: Impact::High,
-        }).collect()
+    fn convert_nis2_recommendations(
+        &self,
+        nis2_result: &nis2::NIS2Assessment,
+    ) -> Vec<Recommendation> {
+        nis2_result
+            .recommendations
+            .iter()
+            .map(|rec| Recommendation {
+                id: uuid::Uuid::new_v4().to_string(),
+                title: rec.clone(),
+                description: format!("NIS2 compliance recommendation: {}", rec),
+                priority: Priority::High,
+                effort: Effort::Medium,
+                impact: Impact::High,
+            })
+            .collect()
     }
 
     fn determine_overall_status(&self, score: f64) -> ComplianceStatus {

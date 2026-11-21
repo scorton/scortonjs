@@ -1,5 +1,5 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use anyhow::{Result, Context};
 use std::time::Duration;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -133,7 +133,7 @@ impl ComplianceAssessor {
         let incident_response_time = self.measure_incident_response_time(target).await?;
         let third_party_risks = self.assess_third_party_risks(target).await?;
         let resilience_score = self.calculate_resilience_score(target).await?;
-        
+
         let compliance_status = self.determine_dora_compliance_status(
             &ict_risk_score,
             &incident_response_time,
@@ -158,7 +158,7 @@ impl ComplianceAssessor {
         let incident_handling = self.assess_incident_handling(target).await?;
         let business_continuity = self.assess_business_continuity(target).await?;
         let supply_chain_security = self.assess_supply_chain_security(target).await?;
-        
+
         let compliance_status = self.determine_nis2_compliance_status(
             &risk_level,
             &incident_handling,
@@ -197,14 +197,12 @@ impl ComplianceAssessor {
     async fn assess_third_party_risks(&self, _target: &str) -> Result<Vec<ThirdPartyRisk>> {
         // Placeholder implementation
         // In real implementation, this would assess actual third-party vendors
-        Ok(vec![
-            ThirdPartyRisk {
-                vendor_name: "Cloud Provider".to_string(),
-                risk_level: RiskLevel::Medium,
-                assessment_date: chrono::Utc::now(),
-                criticality: Criticality::High,
-            },
-        ])
+        Ok(vec![ThirdPartyRisk {
+            vendor_name: "Cloud Provider".to_string(),
+            risk_level: RiskLevel::Medium,
+            assessment_date: chrono::Utc::now(),
+            criticality: Criticality::High,
+        }])
     }
 
     async fn calculate_resilience_score(&self, _target: &str) -> Result<f64> {
@@ -222,7 +220,7 @@ impl ComplianceAssessor {
         // Placeholder implementation
         Ok(IncidentMetrics {
             detection_time: Duration::from_secs(15 * 60), // 15 minutes
-            response_time: Duration::from_secs(1 * 3600), // 1 hour
+            response_time: Duration::from_secs(3600),     // 1 hour
             resolution_time: Duration::from_secs(4 * 3600), // 4 hours
             reporting_time: Duration::from_secs(2 * 3600), // 2 hours
             incidents_last_year: 3,
@@ -235,7 +233,7 @@ impl ComplianceAssessor {
             plan_exists: true,
             last_tested: Some(chrono::Utc::now() - chrono::Duration::days(30)),
             recovery_time_objective: Duration::from_secs(4 * 3600), // 4 hours
-            recovery_point_objective: Duration::from_secs(1 * 3600), // 1 hour
+            recovery_point_objective: Duration::from_secs(3600),    // 1 hour
             backup_frequency: "Daily".to_string(),
         })
     }
@@ -252,16 +250,17 @@ impl ComplianceAssessor {
 
     fn determine_dora_compliance_status(
         &self,
-        ict_risk_score: &f64,
+        _ict_risk_score: &f64,
         incident_response_time: &Duration,
         third_party_risks: &[ThirdPartyRisk],
         resilience_score: &f64,
     ) -> ComplianceStatus {
-        let response_time_ok = *incident_response_time <= self.config.dora_thresholds.max_incident_response_time;
+        let response_time_ok =
+            *incident_response_time <= self.config.dora_thresholds.max_incident_response_time;
         let resilience_ok = *resilience_score >= self.config.dora_thresholds.min_resilience_score;
-        let third_party_ok = !third_party_risks.iter().any(|risk| {
-            matches!(risk.risk_level, RiskLevel::High | RiskLevel::Critical)
-        });
+        let third_party_ok = !third_party_risks
+            .iter()
+            .any(|risk| matches!(risk.risk_level, RiskLevel::High | RiskLevel::Critical));
 
         if response_time_ok && resilience_ok && third_party_ok {
             ComplianceStatus::Compliant
@@ -279,9 +278,11 @@ impl ComplianceAssessor {
         business_continuity: &BCPStatus,
         supply_chain_security: &SupplyChainScore,
     ) -> ComplianceStatus {
-        let incident_ok = incident_handling.reporting_time <= self.config.nis2_thresholds.max_incident_reporting_time;
+        let incident_ok = incident_handling.reporting_time
+            <= self.config.nis2_thresholds.max_incident_reporting_time;
         let bcp_ok = business_continuity.plan_exists && business_continuity.last_tested.is_some();
-        let supply_chain_ok = supply_chain_security.overall_score >= self.config.nis2_thresholds.min_supply_chain_score;
+        let supply_chain_ok = supply_chain_security.overall_score
+            >= self.config.nis2_thresholds.min_supply_chain_score;
 
         if incident_ok && bcp_ok && supply_chain_ok {
             ComplianceStatus::Compliant
@@ -306,7 +307,9 @@ impl ComplianceAssessor {
                 "Conduct third-party risk assessments".to_string(),
                 "Develop business continuity plans".to_string(),
             ],
-            ComplianceStatus::Unknown => vec!["Conduct comprehensive compliance assessment".to_string()],
+            ComplianceStatus::Unknown => {
+                vec!["Conduct comprehensive compliance assessment".to_string()]
+            }
         }
     }
 
@@ -324,7 +327,9 @@ impl ComplianceAssessor {
                 "Develop business continuity plans".to_string(),
                 "Conduct supply chain security assessments".to_string(),
             ],
-            ComplianceStatus::Unknown => vec!["Conduct comprehensive compliance assessment".to_string()],
+            ComplianceStatus::Unknown => {
+                vec!["Conduct comprehensive compliance assessment".to_string()]
+            }
         }
     }
 }

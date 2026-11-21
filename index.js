@@ -21,8 +21,9 @@ class ScortonJS {
   async execute(command, args = [], options = {}) {
     return new Promise((resolve, reject) => {
       const pythonArgs = [command, ...args];
+      const pythonCommand = process.env.SCORTON_PY_PATH || 'python3';
       
-      const pythonProcess = spawn('python3', [this.pythonScript, ...pythonArgs], {
+      const pythonProcess = spawn(pythonCommand, [this.pythonScript, ...pythonArgs], {
         stdio: ['pipe', 'pipe', 'pipe'],
         ...options
       });

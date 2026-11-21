@@ -1,6 +1,4 @@
 use napi_derive::napi;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[napi]
 pub struct ScanResult {
@@ -249,7 +247,7 @@ pub async fn run_security_scan(tool: String, target: String) -> napi::Result<Sca
 }
 
 #[napi]
-pub async fn calculate_cyber_score(target: String) -> napi::Result<CyberScore> {
+pub async fn calculate_cyber_score(_target: String) -> napi::Result<CyberScore> {
     // Placeholder implementation for cyber score calculation
     // In a real implementation, this would analyze various security factors
     let technical = 0.75;

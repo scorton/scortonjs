@@ -106,6 +106,7 @@ strict_equality = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -148,4 +149,4 @@ exclude_lines = [
 
 
 [tool.setuptools]
-py-modules = ["scorton"]
+py-modules = ["scorton", "trustgraph", "trustgraph_scorton", "trustgraph_api"]

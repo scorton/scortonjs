@@ -1,5 +1,4 @@
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Result};
-use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::HashMap;
@@ -173,17 +172,14 @@ async fn compliance_handler(req: web::Json<ComplianceRequest>) -> Result<HttpRes
 
 async fn score_handler(req: web::Json<ScoreRequest>) -> Result<HttpResponse> {
     // Placeholder implementation for cyber score calculation
-    let technical = 0.75;
-    let behavioral = 0.65;
-    let organizational = 0.80;
-    let overall = (technical + behavioral + organizational) / 3.0;
+    let scores = calculate_cyber_score(&req.target).await;
 
     let score_data = json!({
         "target": req.target,
-        "technical": technical,
-        "behavioral": behavioral,
-        "organizational": organizational,
-        "overall": overall,
+        "technical": scores.get("technical").copied().unwrap_or(0.0),
+        "behavioral": scores.get("behavioral").copied().unwrap_or(0.0),
+        "organizational": scores.get("organizational").copied().unwrap_or(0.0),
+        "overall": scores.get("overall").copied().unwrap_or(0.0),
         "timestamp": chrono::Utc::now().to_rfc3339()
     });
 
@@ -192,11 +188,16 @@ async fn score_handler(req: web::Json<ScoreRequest>) -> Result<HttpResponse> {
 }
 
 async fn calculate_cyber_score(_target: &str) -> HashMap<String, f64> {
+    let technical = 0.75;
+    let behavioral = 0.65;
+    let organizational = 0.80;
+    let overall = (technical + behavioral + organizational) / 3.0;
+
     let mut scores = HashMap::new();
-    scores.insert("technical".to_string(), 0.75);
-    scores.insert("behavioral".to_string(), 0.65);
-    scores.insert("organizational".to_string(), 0.80);
-    scores.insert("overall".to_string(), 0.73);
+    scores.insert("technical".to_string(), technical);
+    scores.insert("behavioral".to_string(), behavioral);
+    scores.insert("organizational".to_string(), organizational);
+    scores.insert("overall".to_string(), overall);
     scores
 }
 

@@ -1,14 +1,14 @@
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use anyhow::{Result, Context};
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::time::timeout;
 
 pub async fn analyze_ssl_certificate(target: &str, port: u16) -> Result<crate::SSLCertificate> {
     let socket_addr = format!("{}:{}", target, port);
-    
+
     // Connect to the target
-    let stream = timeout(Duration::from_secs(10), TcpStream::connect(&socket_addr))
+    let _stream = timeout(Duration::from_secs(10), TcpStream::connect(&socket_addr))
         .await
         .context("Connection timeout")?
         .context("Failed to connect")?;
@@ -29,10 +29,10 @@ pub async fn analyze_ssl_certificate(target: &str, port: u16) -> Result<crate::S
 
 pub async fn check_ssl_vulnerabilities(target: &str, port: u16) -> Result<Vec<SslVulnerability>> {
     let mut vulnerabilities = Vec::new();
-    
+
     // Check for common SSL vulnerabilities
     let cert = analyze_ssl_certificate(target, port).await?;
-    
+
     // Check certificate expiration
     if cert.valid_until < chrono::Utc::now() + chrono::Duration::days(30) {
         vulnerabilities.push(SslVulnerability {
@@ -42,7 +42,7 @@ pub async fn check_ssl_vulnerabilities(target: &str, port: u16) -> Result<Vec<Ss
             recommendation: "Renew certificate before expiration".to_string(),
         });
     }
-    
+
     // Check key size
     if cert.key_size < 2048 {
         vulnerabilities.push(SslVulnerability {
@@ -52,7 +52,7 @@ pub async fn check_ssl_vulnerabilities(target: &str, port: u16) -> Result<Vec<Ss
             recommendation: "Upgrade to at least 2048-bit key".to_string(),
         });
     }
-    
+
     Ok(vulnerabilities)
 }
 

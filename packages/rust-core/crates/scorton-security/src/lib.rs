@@ -1,17 +1,15 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::time::timeout;
-use url::Url;
-use anyhow::{Result, Context};
 
-pub mod scanner;
 pub mod compliance;
-pub mod ssl;
 pub mod dns;
 pub mod headers;
+pub mod scanner;
+pub mod ssl;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanResult {
@@ -102,9 +100,9 @@ impl SecurityScanner {
     }
 
     pub async fn port_scan(&self, target: &str, ports: &[u16]) -> Result<Vec<PortScanResult>> {
-        let start_time = std::time::Instant::now();
+        let _start_time = std::time::Instant::now();
         let mut results = Vec::new();
-        
+
         // Parse target to IP address
         let ip: IpAddr = if let Ok(parsed_ip) = target.parse() {
             parsed_ip
@@ -115,8 +113,10 @@ impl SecurityScanner {
                 std::net::ToSocketAddrs::to_socket_addrs(&format!("{}:80", target))
                     .map(|mut addrs| addrs.next().map(|addr| addr.ip()))
                     .unwrap_or(None)
-            }).await.map_err(|_| anyhow::anyhow!("DNS resolution task failed"))?;
-            
+            })
+            .await
+            .map_err(|_| anyhow::anyhow!("DNS resolution task failed"))?;
+
             match result {
                 Some(ip) => ip,
                 None => return Err(anyhow::anyhow!("No IP address found for target")),
@@ -125,15 +125,14 @@ impl SecurityScanner {
 
         // Create semaphore for concurrency control
         let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(self.max_concurrent));
-        
+
         // Scan ports concurrently
         let mut tasks = Vec::new();
         let ports = ports.to_vec(); // Convert to owned Vec
         for port in ports {
             let semaphore = semaphore.clone();
-            let ip = ip;
             let timeout = self.timeout;
-            
+
             tasks.push(tokio::spawn(async move {
                 let _permit = semaphore.acquire().await.unwrap();
                 Self::scan_port(ip, port, timeout).await
@@ -152,7 +151,7 @@ impl SecurityScanner {
 
     async fn scan_port(ip: IpAddr, port: u16, timeout_duration: Duration) -> PortScanResult {
         let socket_addr = SocketAddr::new(ip, port);
-        
+
         match timeout(timeout_duration, TcpStream::connect(&socket_addr)).await {
             Ok(Ok(_)) => PortScanResult {
                 port,
@@ -220,7 +219,7 @@ mod tests {
     async fn test_port_scan_localhost() {
         let scanner = SecurityScanner::default();
         let ports = vec![80, 443, 22];
-        
+
         // This test will only work if we have a local server running
         // For now, just test that the function doesn't panic
         let _result = scanner.port_scan("127.0.0.1", &ports).await;
@@ -228,8 +227,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_service_detection() {
-        assert_eq!(SecurityScanner::detect_service(80), Some("http".to_string()));
-        assert_eq!(SecurityScanner::detect_service(443), Some("https".to_string()));
+        assert_eq!(
+            SecurityScanner::detect_service(80),
+            Some("http".to_string())
+        );
+        assert_eq!(
+            SecurityScanner::detect_service(443),
+            Some("https".to_string())
+        );
         assert_eq!(SecurityScanner::detect_service(9999), None);
     }
 }

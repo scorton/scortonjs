@@ -1,7 +1,8 @@
-use actix_web::{web, App, HttpServer, HttpResponse, Result, middleware::Logger};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Result};
 use anyhow::anyhow;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanRequest {
@@ -54,7 +55,7 @@ impl<T> ApiResponse<T> {
 // Simple handlers without complex middleware
 async fn scan_handler(req: web::Json<ScanRequest>) -> Result<HttpResponse> {
     let scanner = scorton_security::SecurityScanner::default();
-    
+
     match req.tool.as_str() {
         "port_scan" => {
             let ports = vec![22, 80, 443, 8080, 8443];
@@ -74,47 +75,43 @@ async fn scan_handler(req: web::Json<ScanRequest>) -> Result<HttpResponse> {
                 }
             }
         }
-        "ssl_scan" => {
-            match scanner.ssl_scan(&req.target, 443).await {
-                Ok(cert) => {
-                    let response = ApiResponse::success(json!({
-                        "tool": req.tool,
-                        "target": req.target,
-                        "certificate": cert,
-                        "status": "completed"
-                    }));
-                    Ok(HttpResponse::Ok().json(response))
-                }
-                Err(e) => {
-                    let response = ApiResponse::<()>::error(format!("SSL scan failed: {}", e));
-                    Ok(HttpResponse::InternalServerError().json(response))
-                }
+        "ssl_scan" => match scanner.ssl_scan(&req.target, 443).await {
+            Ok(cert) => {
+                let response = ApiResponse::success(json!({
+                    "tool": req.tool,
+                    "target": req.target,
+                    "certificate": cert,
+                    "status": "completed"
+                }));
+                Ok(HttpResponse::Ok().json(response))
             }
-        }
-        "dns_enum" => {
-            match scanner.dns_enum(&req.target).await {
-                Ok(records) => {
-                    let response = ApiResponse::success(json!({
-                        "tool": req.tool,
-                        "target": req.target,
-                        "records": records,
-                        "status": "completed"
-                    }));
-                    Ok(HttpResponse::Ok().json(response))
-                }
-                Err(e) => {
-                    let response = ApiResponse::<()>::error(format!("DNS enumeration failed: {}", e));
-                    Ok(HttpResponse::InternalServerError().json(response))
-                }
+            Err(e) => {
+                let response = ApiResponse::<()>::error(format!("SSL scan failed: {}", e));
+                Ok(HttpResponse::InternalServerError().json(response))
             }
-        }
+        },
+        "dns_enum" => match scanner.dns_enum(&req.target).await {
+            Ok(records) => {
+                let response = ApiResponse::success(json!({
+                    "tool": req.tool,
+                    "target": req.target,
+                    "records": records,
+                    "status": "completed"
+                }));
+                Ok(HttpResponse::Ok().json(response))
+            }
+            Err(e) => {
+                let response = ApiResponse::<()>::error(format!("DNS enumeration failed: {}", e));
+                Ok(HttpResponse::InternalServerError().json(response))
+            }
+        },
         "headers_check" => {
             let url = if req.target.starts_with("http") {
                 req.target.clone()
             } else {
                 format!("https://{}", req.target)
             };
-            
+
             match scanner.check_headers(&url).await {
                 Ok(headers) => {
                     let response = ApiResponse::success(json!({
@@ -139,17 +136,25 @@ async fn scan_handler(req: web::Json<ScanRequest>) -> Result<HttpResponse> {
 }
 
 async fn compliance_handler(req: web::Json<ComplianceRequest>) -> Result<HttpResponse> {
-    let framework = match req.framework.as_str() {
-        "dora" => scorton_compliance::ComplianceFramework::DORA,
-        "nis2" => scorton_compliance::ComplianceFramework::NIS2,
-        "both" => scorton_compliance::ComplianceFramework::Both,
+    let (dora_enabled, nis2_enabled) = match req.framework.as_str() {
+        "dora" => (true, false),
+        "nis2" => (false, true),
+        "both" => (true, true),
         _ => {
-            let response = ApiResponse::<()>::error(format!("Unknown framework: {}", req.framework));
+            let response =
+                ApiResponse::<()>::error(format!("Unknown framework: {}", req.framework));
             return Ok(HttpResponse::BadRequest().json(response));
         }
     };
 
-    match scorton_compliance::run_compliance_assessment(&req.framework, &req.target).await {
+    let config = scorton_compliance::ComplianceConfig {
+        dora_enabled,
+        nis2_enabled,
+        ..Default::default()
+    };
+    let engine = scorton_compliance::ComplianceEngine::new(config);
+
+    match engine.run_compliance_assessment(&req.target).await {
         Ok(result) => {
             let response = ApiResponse::success(json!({
                 "framework": req.framework,
@@ -198,16 +203,14 @@ async fn calculate_cyber_score(_target: &str) -> HashMap<String, f64> {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Starting ScortonJS Rust API Server on 127.0.0.1:8001");
-    
+
     HttpServer::new(|| {
-        App::new()
-            .wrap(Logger::default())
-            .service(
-                web::scope("/api")
-                    .route("/scan", web::post().to(scan_handler))
-                    .route("/compliance", web::post().to(compliance_handler))
-                    .route("/score", web::post().to(score_handler))
-            )
+        App::new().wrap(Logger::default()).service(
+            web::scope("/api")
+                .route("/scan", web::post().to(scan_handler))
+                .route("/compliance", web::post().to(compliance_handler))
+                .route("/score", web::post().to(score_handler)),
+        )
     })
     .bind("127.0.0.1:8001")?
     .run()

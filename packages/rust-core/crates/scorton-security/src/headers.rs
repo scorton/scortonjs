@@ -1,6 +1,5 @@
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use anyhow::{Result, Context};
-use std::collections::HashMap;
 
 pub async fn analyze_security_headers(url: &str) -> Result<crate::SecurityHeaders> {
     let client = reqwest::Client::builder()
@@ -15,7 +14,7 @@ pub async fn analyze_security_headers(url: &str) -> Result<crate::SecurityHeader
         .context("Failed to send HTTP request")?;
 
     let headers = response.headers();
-    
+
     Ok(crate::SecurityHeaders {
         strict_transport_security: headers
             .get("strict-transport-security")
@@ -51,7 +50,7 @@ pub async fn analyze_security_headers(url: &str) -> Result<crate::SecurityHeader
 pub async fn check_security_header_vulnerabilities(url: &str) -> Result<Vec<HeaderVulnerability>> {
     let mut vulnerabilities = Vec::new();
     let headers = analyze_security_headers(url).await?;
-    
+
     // Check for missing HSTS
     if headers.strict_transport_security.is_none() {
         vulnerabilities.push(HeaderVulnerability {
@@ -61,7 +60,7 @@ pub async fn check_security_header_vulnerabilities(url: &str) -> Result<Vec<Head
             recommendation: "Add Strict-Transport-Security header".to_string(),
         });
     }
-    
+
     // Check for missing CSP
     if headers.content_security_policy.is_none() {
         vulnerabilities.push(HeaderVulnerability {
@@ -71,7 +70,7 @@ pub async fn check_security_header_vulnerabilities(url: &str) -> Result<Vec<Head
             recommendation: "Add Content-Security-Policy header".to_string(),
         });
     }
-    
+
     // Check for missing X-Frame-Options
     if headers.x_frame_options.is_none() {
         vulnerabilities.push(HeaderVulnerability {
@@ -81,7 +80,7 @@ pub async fn check_security_header_vulnerabilities(url: &str) -> Result<Vec<Head
             recommendation: "Add X-Frame-Options header".to_string(),
         });
     }
-    
+
     // Check for missing X-Content-Type-Options
     if headers.x_content_type_options.is_none() {
         vulnerabilities.push(HeaderVulnerability {
@@ -91,7 +90,7 @@ pub async fn check_security_header_vulnerabilities(url: &str) -> Result<Vec<Head
             recommendation: "Add X-Content-Type-Options: nosniff".to_string(),
         });
     }
-    
+
     Ok(vulnerabilities)
 }
 
@@ -114,15 +113,29 @@ pub enum VulnerabilitySeverity {
 pub fn calculate_security_header_score(headers: &crate::SecurityHeaders) -> f64 {
     let mut score = 0.0;
     let total_checks = 7.0;
-    
-    if headers.strict_transport_security.is_some() { score += 1.0; }
-    if headers.content_security_policy.is_some() { score += 1.0; }
-    if headers.x_frame_options.is_some() { score += 1.0; }
-    if headers.x_content_type_options.is_some() { score += 1.0; }
-    if headers.x_xss_protection.is_some() { score += 1.0; }
-    if headers.referrer_policy.is_some() { score += 1.0; }
-    if headers.permissions_policy.is_some() { score += 1.0; }
-    
+
+    if headers.strict_transport_security.is_some() {
+        score += 1.0;
+    }
+    if headers.content_security_policy.is_some() {
+        score += 1.0;
+    }
+    if headers.x_frame_options.is_some() {
+        score += 1.0;
+    }
+    if headers.x_content_type_options.is_some() {
+        score += 1.0;
+    }
+    if headers.x_xss_protection.is_some() {
+        score += 1.0;
+    }
+    if headers.referrer_policy.is_some() {
+        score += 1.0;
+    }
+    if headers.permissions_policy.is_some() {
+        score += 1.0;
+    }
+
     score / total_checks
 }
 
@@ -148,7 +161,7 @@ mod tests {
             referrer_policy: Some("strict-origin-when-cross-origin".to_string()),
             permissions_policy: Some("geolocation=()".to_string()),
         };
-        
+
         let score = calculate_security_header_score(&headers);
         assert_eq!(score, 1.0);
     }

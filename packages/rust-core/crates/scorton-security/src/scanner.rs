@@ -1,8 +1,6 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use anyhow::{Result, Context};
-use tokio::net::TcpStream;
-use tokio::time::timeout;
 use std::time::Duration;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -33,9 +31,12 @@ impl ScannerOrchestrator {
         Self { config }
     }
 
-    pub async fn run_comprehensive_scan(&self, target: &str) -> Result<HashMap<String, serde_json::Value>> {
+    pub async fn run_comprehensive_scan(
+        &self,
+        target: &str,
+    ) -> Result<HashMap<String, serde_json::Value>> {
         let mut results = HashMap::new();
-        
+
         // Port scan
         if let Ok(port_results) = self.scan_common_ports(target).await {
             results.insert("port_scan".to_string(), serde_json::to_value(port_results)?);
@@ -53,7 +54,10 @@ impl ScannerOrchestrator {
 
         // Security headers
         if let Ok(headers) = self.check_security_headers(target).await {
-            results.insert("security_headers".to_string(), serde_json::to_value(headers)?);
+            results.insert(
+                "security_headers".to_string(),
+                serde_json::to_value(headers)?,
+            );
         }
 
         Ok(results)
@@ -61,9 +65,10 @@ impl ScannerOrchestrator {
 
     async fn scan_common_ports(&self, target: &str) -> Result<Vec<crate::PortScanResult>> {
         let common_ports = vec![
-            21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 993, 995, 1723, 3389, 5432, 3306, 6379, 27017
+            21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 993, 995, 1723, 3389, 5432, 3306,
+            6379, 27017,
         ];
-        
+
         let scanner = crate::SecurityScanner::new(self.config.timeout, self.config.max_concurrent);
         scanner.port_scan(target, &common_ports).await
     }
